@@ -1,15 +1,24 @@
 package com.pacscope.pacscope;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.Packet;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 
 public class MainController {
-
+    private Stage primaryStage;
+    public void setPrimaryStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+    }
     @FXML
     protected void onFileButtonClick() {
 
@@ -50,7 +59,15 @@ public class MainController {
         System.out.println("Please contact Pacscope for help.");
     }
     @FXML
-    protected void liveCaptureButtonClick() {
-        System.out.println("Live Capture is not available yet.");
+    protected void liveCaptureButtonClick() throws IOException {
+        FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("interface-select.fxml")));
+        Parent main = loader.load();
+        InterfaceSelectController interfaceSelectController = loader.getController();
+        interfaceSelectController.setPrimaryStage(primaryStage);
+        Scene mainScene = new Scene(main, 600, 600);
+        primaryStage.setScene(mainScene);
+        primaryStage.show();
     }
+
+
 }
