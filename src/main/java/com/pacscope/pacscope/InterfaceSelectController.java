@@ -17,7 +17,6 @@ import org.pcap4j.core.Pcaps;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class InterfaceSelectController implements Initializable {
@@ -41,7 +40,6 @@ public class InterfaceSelectController implements Initializable {
             return;
         }
         ObservableList<String> items = FXCollections.observableArrayList();
-        System.out.println("Available Network Interfaces:");
         List<PcapNetworkInterface> findAllDevs = allDevs;
         Platform.runLater(()->{
             items.add("Available Network Interfaces:\n");
