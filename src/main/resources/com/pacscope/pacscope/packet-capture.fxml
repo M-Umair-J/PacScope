@@ -4,9 +4,14 @@
 
 
 <?import javafx.scene.effect.Glow?>
-<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.PacketCaptureController">
-      <ListView fx:id = "packetCaptureField" onMouseClicked="#displayPacket" onKeyPressed="#saveFile" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: Gray; -fx-border-color: Cyan; ">
-       <effect>
-           <Glow />
-       </effect></ListView>
-</ScrollPane>
+<?import javafx.scene.layout.VBox?>
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="Infinity" minWidth="Infinity" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.PacketCaptureController">
+    <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" >
+        <ListView fx:id = "packetCaptureField" onMouseClicked="#displayPacket" onKeyPressed="#saveFile" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: Gray; -fx-border-color: Cyan; ">
+            <effect>
+                <Glow />
+            </effect></ListView>
+    </ScrollPane>
+    <Button fx:id="endcapture" mnemonicParsing="false" onAction="#endCapture" text="End Capture" />
+</VBox>
+

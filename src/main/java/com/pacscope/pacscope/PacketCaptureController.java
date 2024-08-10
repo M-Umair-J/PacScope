@@ -5,7 +5,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
@@ -18,53 +17,102 @@ import org.pcap4j.packet.Packet;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
-public class PacketCaptureController implements Initializable {
+public class PacketCaptureController {
     private Stage primaryStage;
     private static PcapNetworkInterface selectedInterface;
     private static Packet selectedPacket;
     private volatile boolean capturing;
+    private Thread thread;
     @FXML
     private ListView<String> packetCaptureField;
-    private static List<Packet> packetList = new ArrayList<>();
-    private static ObservableList<String> items = FXCollections.observableArrayList();
+    private static final List<Packet> packetList = new ArrayList<>();
+    private static final ObservableList<String> items = FXCollections.observableArrayList();
+
+    public PacketCaptureController(){
+        capturing = true;
+        selectedInterface = InterfaceSelectController.getSelectedInterface();
+        if(capturing){
+            thread = new Thread(this::startLiveCapture);
+            thread.start();
+        }
+    }
+
+    public void endCapture(){
+        capturing = false;
+        if (thread != null && thread.isAlive()) {
+            System.out.println("Thread closed");
+            thread.interrupt();
+            thread = null;
+        }
+        saveCaptureToFile();
+        goBackToMainScreen();
+    }
+
     public void saveFile(KeyEvent event){
         if(event.getCode().equals(KeyCode.S) && event.isControlDown()) {
             capturing = false;
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Save PCAP File");
-            fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("PCAP Files", "*.pcap"),
-                    new FileChooser.ExtensionFilter("PCAPNG Files", "*.pcapng")
-            );
-            fileChooser.setInitialFileName("capture.pcap");
-            File file = fileChooser.showSaveDialog(primaryStage);
-            if (file != null) {
-                PcapHandle handle = null;
-                PcapDumper dumper = null;
-                try {
-                    handle = selectedInterface.openLive(65536, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 10);
-                    dumper = handle.dumpOpen(file.getAbsolutePath());
-                        for (Packet packet : packetList) {
-                            dumper.dump(packet);
-                        }
-                    } catch (PcapNativeException |NotOpenException e) {
-                        e.printStackTrace();
-                }finally {
-                    if (handle != null && handle.isOpen()) {
-                        handle.close();
+            if (thread != null && thread.isAlive()) {
+                System.out.println("Thread closed");
+                thread.interrupt();
+                thread = null;
+            }
+            saveCaptureToFile();
+            goBackToMainScreen();
+        }
+    }
+
+    private synchronized void saveCaptureToFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save PCAP File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("PCAP Files", "*.pcap"),
+                new FileChooser.ExtensionFilter("PCAPNG Files", "*.pcapng")
+        );
+        fileChooser.setInitialFileName("capture.pcap");
+        File file = fileChooser.showSaveDialog(primaryStage);
+        if (file != null) {
+            PcapHandle handle = null;
+            PcapDumper dumper = null;
+            try {
+                handle = selectedInterface.openLive(65536, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, 10);
+                dumper = handle.dumpOpen(file.getAbsolutePath());
+                synchronized (packetList) {
+                    for (Packet packet : packetList) {
+                        dumper.dump(packet);
                     }
-                    if (dumper != null) {
-                        dumper.close();
-                    }
+                }
+            } catch (PcapNativeException | NotOpenException e) {
+                e.printStackTrace();
+            } finally {
+                if (handle != null && handle.isOpen()) {
+                    handle.close();
+                }
+                if (dumper != null) {
+                    dumper.close();
                 }
             }
         }
     }
+
+    private void goBackToMainScreen() {
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/pacscope/pacscope/main-screen.fxml"));
+                Parent root = loader.load();
+                MainController mainController = loader.getController();
+                mainController.setPrimaryStage(primaryStage);
+                Scene scene = new Scene(root, 600, 600);
+                primaryStage.setScene(scene);
+                primaryStage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public void startLiveCapture() {
         int snapLength = 65536;
         PcapNetworkInterface.PromiscuousMode mode = PcapNetworkInterface.PromiscuousMode.PROMISCUOUS;
@@ -74,27 +122,31 @@ public class PacketCaptureController implements Initializable {
 
         try {
             handle = selectedInterface.openLive(snapLength, mode, timeout);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
             Packet packet = null;
-        while(capturing){
-           try{
-               assert handle != null;
-               packet = handle.getNextPacket();
-              }catch (Exception e){
-                e.printStackTrace();
-           }
-           if(packet!=null){
-               Packet finalPacket = packet;
-               packetList.add(packet);
-               Platform.runLater(()->{
-                     items.add(finalPacket.getHeader().toString());
-                });
-               packetCaptureField.setItems(items);
-           }
-       }
+            while (capturing && !Thread.currentThread().isInterrupted()) {
+                try {
+                    packet = handle.getNextPacket();
+                } catch (NotOpenException e) {
+                    e.printStackTrace();
+                }
+                if (packet != null) {
+                    Packet finalPacket = packet;
+                    synchronized (packetList) {
+                        packetList.add(packet);
+                    }
+                    Platform.runLater(() -> items.add(finalPacket.getHeader().toString()));
+                    packetCaptureField.setItems(items);
+                }
+            }
+        } catch (PcapNativeException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (handle != null && handle.isOpen()) {
+                handle.close();
+            }
+        }
     }
+
     @FXML
     public void displayPacket() throws IOException {
         int index = packetCaptureField.getSelectionModel().getSelectedIndex();
@@ -110,16 +162,10 @@ public class PacketCaptureController implements Initializable {
         primaryStage.show();
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        capturing = true;
-        selectedInterface = InterfaceSelectController.getSelectedInterface();
-        new Thread(this::startLiveCapture).start();
-    }
-
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
+
     public static Packet getSelectedPacket(){
         return selectedPacket;
     }
