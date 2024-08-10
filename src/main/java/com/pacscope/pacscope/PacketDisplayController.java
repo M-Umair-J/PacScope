@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 public class PacketDisplayController implements Initializable {
     private Stage primaryStage;
     private Packet packet;
+    public static Object reference;
     @FXML
     private TextArea packetArea;
     public void setPrimaryStage(Stage primaryStage) {
@@ -26,19 +27,33 @@ public class PacketDisplayController implements Initializable {
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        packet = PacketCaptureController.getSelectedPacket();
-//        new Thread(this::displayPacket).start();
+        if(reference instanceof PacketCaptureController){
+            packet = PacketCaptureController.getSelectedPacket();
+        }
+        else if(reference instanceof OpenCaptureFile){
+            packet = OpenCaptureFile.getSelectedPacket();
+        }
         displayPacket();
     }
     @FXML
-    public void goBackToCapture() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-capture.fxml"));
-        Parent root = loader.load();
-        PacketCaptureController packetCaptureController = loader.getController();
-        packetCaptureController.setPrimaryStage(primaryStage);
-        Scene scene = new Scene(root, 600, 600);
-        primaryStage.setScene(scene);
+    public void goBack() throws IOException {
+        if(reference instanceof PacketCaptureController) {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-capture.fxml"));
+            Parent root = loader.load();
+            PacketCaptureController packetCaptureController = loader.getController();
+            packetCaptureController.setPrimaryStage(primaryStage);
+            Scene scene = new Scene(root, 600, 600);
+            primaryStage.setScene(scene);primaryStage.setScene(scene);
+        }
+        else if (reference instanceof OpenCaptureFile){
+            OpenCaptureFile.opening = false;
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("open-capture-file.fxml"));
+            Parent root = loader.load();
+            OpenCaptureFile openCaptureFile = loader.getController();
+            openCaptureFile.setPrimaryStage(primaryStage);
+            Scene scene = new Scene(root, 600, 600);
+            primaryStage.setScene(scene);
+        }
         primaryStage.show();
     }
-
 }

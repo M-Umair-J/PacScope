@@ -12,6 +12,6 @@
                 <Glow />
             </effect></ListView>
     </ScrollPane>
-    <Button fx:id="endcapture" mnemonicParsing="false" onAction="#endCapture" text="End Capture" />
+    <Button mnemonicParsing="false" onAction="#endCapture" text="End Capture" />
 </VBox>
 

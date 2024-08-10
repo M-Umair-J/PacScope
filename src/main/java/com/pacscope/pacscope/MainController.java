@@ -20,35 +20,14 @@ public class MainController {
         this.primaryStage = primaryStage;
     }
     @FXML
-    protected void onFileButtonClick() {
-
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open pcap File");
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PCAP Files", "*.pcap"),
-                new FileChooser.ExtensionFilter("PCAPNG", "*.pcapng*"),
-                new FileChooser.ExtensionFilter("All Files", "*.*"));
-        File file = fileChooser.showOpenDialog(null);
-        if(file!=null){
-            System.out.println("File selected: " + file.getName());
-            try{
-                PcapHandle handle = Pcaps.openOffline(file.getAbsolutePath());
-                System.out.println("File opened successfully.");
-                Packet packet;
-                while((packet = handle.getNextPacket()) != null){
-                    System.out.println(packet);
-                }
-                handle.close();
-            }
-
-            catch(Exception e){
-                System.out.println("Error opening file.");
-            }
-        }
-        else{
-            System.out.println("No file selected.");
-        }
-
-
+    protected void onFileButtonClick() throws IOException {
+        FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("open-capture-file.fxml")));
+        Parent main  = loader.load();
+        OpenCaptureFile openCaptureFile = loader.getController();
+        openCaptureFile.setPrimaryStage(primaryStage);
+        Scene mainScene = new Scene(main, 600, 600);
+        primaryStage.setScene(mainScene);
+        primaryStage.show();
     }
     @FXML
     protected void onAboutButtonClick() {

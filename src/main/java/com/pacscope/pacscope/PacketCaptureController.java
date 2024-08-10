@@ -153,6 +153,7 @@ public class PacketCaptureController {
         if(index > 0){
             selectedPacket = packetList.get(index-1);
         }
+        PacketDisplayController.reference = this;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-display.fxml"));
         Parent root = loader.load();
         PacketDisplayController packetDisplayController = loader.getController();
