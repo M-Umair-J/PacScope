@@ -9,6 +9,7 @@ module com.pacscope.pacscope {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires org.pcap4j.core;
+    requires java.desktop;
 
 
     opens com.pacscope.pacscope to javafx.fxml;

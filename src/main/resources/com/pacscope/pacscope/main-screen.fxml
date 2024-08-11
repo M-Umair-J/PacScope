@@ -2,65 +2,64 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.MainController">
+<VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #001E4D;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.MainController">
    <children>
-      <Label alignment="CENTER" contentDisplay="CENTER" text="PacScope" textAlignment="CENTER">
-         <font>
-            <Font name="Cascadia Code Regular" size="40.0" />
-         </font>
-         <VBox.margin>
-            <Insets />
-         </VBox.margin>
-         <padding>
-            <Insets left="200.0" right="200.0" />
-         </padding>
-      </Label>
-      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onFileButtonClick" text="Open a file" textAlignment="CENTER">
-         <font>
-            <Font name="Droid Sans" size="20.0" />
-         </font>
-         <padding>
-            <Insets left="250.0" right="250.0" />
-         </padding>
+      <ImageView fitHeight="300.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Logo.png" />
+         </image>
+      </ImageView>
+      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onFileButtonClick" style="-fx-background-color: #012773;" textAlignment="CENTER" VBox.vgrow="ALWAYS">
          <VBox.margin>
             <Insets top="20.0" />
          </VBox.margin>
+         <graphic>
+            <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@OpenAFile.png" />
+               </image>
+            </ImageView>
+         </graphic>
       </Button>
-      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#liveCaptureButtonClick" text="Live Capture" textAlignment="CENTER">
+      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#liveCaptureButtonClick" style="-fx-background-color: #012773;" textAlignment="CENTER" VBox.vgrow="ALWAYS">
          <VBox.margin>
             <Insets top="20.0" />
          </VBox.margin>
-         <padding>
-            <Insets left="245.0" right="240.0" />
-         </padding>
-         <font>
-            <Font name="Droid Sans" size="20.0" />
-         </font>
+         <graphic>
+            <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@LiveCapture.png" />
+               </image></ImageView>
+         </graphic>
       </Button>
-      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onHelpButtonClick" text="Help">
-         <font>
-            <Font name="Droid Sans" size="20.0" />
-         </font>
+      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onHelpButtonClick" style="-fx-background-color: #012773;" VBox.vgrow="ALWAYS">
          <VBox.margin>
             <Insets top="20.0" />
          </VBox.margin>
-         <padding>
-            <Insets left="275.0" right="280.0" />
-         </padding>
+         <graphic>
+            <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@Help.png" />
+               </image></ImageView>
+         </graphic>
       </Button>
-      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onAboutButtonClick" text="About" textAlignment="CENTER">
+      <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onAboutButtonClick" style="-fx-background-color: #012773;" textAlignment="CENTER" VBox.vgrow="ALWAYS">
          <VBox.margin>
             <Insets top="20.0" />
          </VBox.margin>
-         <font>
-            <Font name="Droid Sans" size="20.0" />
-         </font>
-         <padding>
-            <Insets left="270.0" right="275.0" />
-         </padding>
+         <graphic>
+            <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@AboutUs.png" />
+               </image></ImageView>
+         </graphic>
       </Button>
    </children>
+   <effect>
+      <DropShadow />
+   </effect>
 </VBox>

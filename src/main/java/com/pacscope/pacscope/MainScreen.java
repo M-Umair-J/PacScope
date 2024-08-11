@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -17,8 +18,11 @@ public class MainScreen extends Application {
         Parent splashScreen = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/com/pacscope/pacscope/splash-screen.fxml")));
         Scene splashScene = new Scene(splashScreen, 600, 600);
         stage.setScene(splashScene);
-        stage.setResizable(false);
+        stage.setMinHeight(400);
+        stage.setMinWidth(400);
+        stage.setResizable(true);
         stage.show();
+        stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/pacscope/pacscope/icon.png"))));
         new Thread(() -> {
             try {
                 Thread.sleep(3000);

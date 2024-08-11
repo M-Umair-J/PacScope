@@ -4,13 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.pcap4j.core.PcapHandle;
-import org.pcap4j.core.Pcaps;
-import org.pcap4j.packet.Packet;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
