@@ -8,7 +8,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
@@ -20,6 +23,14 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class InterfaceSelectController implements Initializable {
+    @FXML
+    private VBox vbox;
+    @FXML
+    private ImageView imageView;
+    @FXML
+    private Button button;
+
+
     private Stage primaryStage;
     private static PcapNetworkInterface pcapNetworkInterface;
     public void setPrimaryStage(Stage primaryStage) {
@@ -39,30 +50,45 @@ public class InterfaceSelectController implements Initializable {
             System.out.println("No network interfaces found.");
             return;
         }
-        ObservableList<String> items = FXCollections.observableArrayList();
         List<PcapNetworkInterface> findAllDevs = allDevs;
         Platform.runLater(()->{
-            items.add("Available Network Interfaces:\n");
+            packetDisplayField.getItems().clear();
+            ObservableList<String> items = FXCollections.observableArrayList();
             int i = 1;
-            for(PcapNetworkInterface dev : findAllDevs){
-
-                items.add(i + " : " + dev.getDescription()+"\n");
-                i++;
+            for(PcapNetworkInterface dev : findAllDevs) {
+                    if(dev.getDescription() != null && !dev.getDescription().trim().isEmpty()) {
+                        items.add(i + " : " + dev.getDescription());
+                        i++;
+                    }
             }
             packetDisplayField.setItems(items);
         });
     }
+    public void initialize(){
+        // Bind ImageView to VBox size
+        imageView.fitWidthProperty().bind(vbox.widthProperty().multiply(0.4)); // 80% of VBox width
+        imageView.fitHeightProperty().bind(vbox.heightProperty().multiply(0.4)); // 40% of VBox height
 
+        // Optionally, bind Button size to VBox size or ImageView size
+        button.prefWidthProperty().bind(vbox.widthProperty().multiply(0.1)); // 20% of VBox width
+        button.prefHeightProperty().bind(vbox.heightProperty().multiply(0.1)); // 10% of VBox height
+
+        // Optionally, adjust ListView size to fill remaining space
+        packetDisplayField.prefWidthProperty().bind(vbox.widthProperty().multiply(0.8)); // 80% of VBox width
+        packetDisplayField.prefHeightProperty().bind(vbox.heightProperty().multiply(0.5)); // 50% of VBox height
+    }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        initialize();
         new Thread(this::interfaceSelect).start();
     }
     @FXML
-    public void handleInterfaceClick() throws IOException {
+    public void onInterfaceSelected() throws IOException {
         int index = packetDisplayField.getSelectionModel().getSelectedIndex();
         if(index>0){
             pcapNetworkInterface = allDevs.get(index-1);
         }
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-capture.fxml"));
         Parent root = loader.load();
 

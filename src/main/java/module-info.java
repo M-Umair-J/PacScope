@@ -11,7 +11,6 @@ module com.pacscope.pacscope {
     requires org.pcap4j.core;
     requires java.desktop;
 
-
     opens com.pacscope.pacscope to javafx.fxml;
     exports com.pacscope.pacscope;
 }

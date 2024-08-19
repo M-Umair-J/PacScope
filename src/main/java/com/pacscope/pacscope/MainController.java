@@ -2,24 +2,41 @@ package com.pacscope.pacscope;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.stage.*;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
-public class MainController {
+public class MainController implements Initializable {
+    @FXML
+    private VBox vbox;
+    @FXML
+    private ImageView title;
+
     private Stage primaryStage;
     public void setPrimaryStage(Stage primaryStage) {
+
         this.primaryStage = primaryStage;
     }
     @FXML
-    protected void onFileButtonClick() throws IOException {
+    protected void onFileButtonClick() throws IOException{
+        File file = fileOpener();
+        if(file == null){
+            return;
+        }
+
         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("open-capture-file.fxml")));
         Parent main  = loader.load();
         OpenCaptureFile openCaptureFile = loader.getController();
         openCaptureFile.setPrimaryStage(primaryStage);
-        Scene mainScene = new Scene(main, 600, 600);
+        openCaptureFile.setFile(file);
+        Scene mainScene = new Scene(main, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
         primaryStage.setScene(mainScene);
         primaryStage.show();
     }
@@ -42,5 +59,20 @@ public class MainController {
         primaryStage.show();
     }
 
+    @Override
+    public void initialize(java.net.URL location, java.util.ResourceBundle resources) {
+        title.fitHeightProperty().bind(vbox.heightProperty().multiply(0.4));
+        title.fitWidthProperty().bind(vbox.widthProperty().multiply(0.4));
+    }
 
+    private File fileOpener(){
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open pcap File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("PCAP Files", "*.pcap"),
+                new FileChooser.ExtensionFilter("PCAPNG", "*.pcapng*"),
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        return fileChooser.showOpenDialog(primaryStage);
+    }
 }

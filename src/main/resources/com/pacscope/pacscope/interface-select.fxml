@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
 
-<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.InterfaceSelectController">
-    <ListView fx:id="packetDisplayField" onMouseClicked="#handleInterfaceClick" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: Gray; -fx-border-color: Cyan; ">
-        <effect>
-            <Glow />
-        </effect></ListView>
-</ScrollPane>
+<VBox fx:id="vbox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: #001E4D;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.InterfaceSelectController">
+   <stylesheets>
+       <URL value="@InterfaceSelect.css" />
+   </stylesheets>
+      <ImageView fx:id="imageView" preserveRatio="true">
+      <image>
+         <Image url="@LiveCaptureTitle.png" />
+      </image></ImageView>
+      <Button fx:id="button" mnemonicParsing="false" text="Button" />
+          <ListView fx:id="packetDisplayField" onMouseClicked="#onInterfaceSelected">
+              <effect>
+                  <Glow />
+              </effect>
+         </ListView>
+</VBox>

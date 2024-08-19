@@ -3,12 +3,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.PacketDisplayController">
-      <ToolBar prefHeight="40.0" prefWidth="200.0">
-          <Button onAction="#goBack" mnemonicParsing="false" text="Button" />
-      </ToolBar>
+      <ToolBar prefHeight="40.0" prefWidth="200.0" />
       <ScrollPane prefHeight="200.0" prefWidth="600.0">
             <TextArea fx:id="packetArea" prefHeight="200.0" prefWidth="600.0" />
       </ScrollPane>
+       <Button mnemonicParsing="false" onAction="#goBack" text="Button" />
 </VBox>

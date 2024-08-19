@@ -18,8 +18,9 @@ public class MainScreen extends Application {
         Parent splashScreen = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/com/pacscope/pacscope/splash-screen.fxml")));
         Scene splashScene = new Scene(splashScreen, 600, 600);
         stage.setScene(splashScene);
-        stage.setMinHeight(400);
-        stage.setMinWidth(400);
+        stage.setMinHeight(500);
+        stage.setMinWidth(500);
+        stage.centerOnScreen();
         stage.setResizable(true);
         stage.show();
         stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/pacscope/pacscope/icon.png"))));
@@ -31,9 +32,10 @@ public class MainScreen extends Application {
                         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/com/pacscope/pacscope/main-screen.fxml")));
                         Parent main = loader.load();
                         MainController mainController = loader.getController();
-                        mainController.setPrimaryStage(stage);
-                        Scene mainScene = new Scene(main, 600, 600);
+                        mainController.setPrimaryStage(primaryStage);
+                        Scene mainScene = new Scene(main,primaryStage.getScene().getWidth(),primaryStage.getScene().getHeight());
                         stage.setScene(mainScene);
+                        stage.show();
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);

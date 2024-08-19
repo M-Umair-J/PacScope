@@ -6,7 +6,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.Pcaps;
@@ -21,15 +20,17 @@ public class OpenCaptureFile{
     private static final List<Packet> packetList = new ArrayList<>();
     public static boolean opening = true;
     Stage primaryStage;
-    Thread thread;
+    private Thread thread;
+    private File file;
     @FXML
     private ListView<String> packetCaptureField;
     private static Packet selectedPacket;
 
-    public OpenCaptureFile(){
+    public void setFile(File file){
+        this.file = file;
         if(opening) {
             thread = new Thread(this::openCaptureFilef);
-                thread.start();
+            thread.start();
         }
         else{
             showPackets();
@@ -47,11 +48,11 @@ public class OpenCaptureFile{
                 Parent root = loader.load();
                 MainController mainController = loader.getController();
                 mainController.setPrimaryStage(primaryStage);
-                Scene scene = new Scene(root, 600, 600);
+                Scene scene = new Scene(root, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
                 primaryStage.setScene(scene);
                 primaryStage.show();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Failed to load the main screen");
             }
         });
     }
@@ -75,14 +76,7 @@ public class OpenCaptureFile{
     }
     public void openCaptureFilef() {
         Platform.runLater(() -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open pcap File");
-            fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("PCAP Files", "*.pcap"),
-                    new FileChooser.ExtensionFilter("PCAPNG", "*.pcapng*"),
-                    new FileChooser.ExtensionFilter("All Files", "*.*")
-            );
-            File file = fileChooser.showOpenDialog(null);
+
             if (file != null) {
                 System.out.println("File selected: " + file.getName());
                 try {
@@ -97,7 +91,6 @@ public class OpenCaptureFile{
                     System.out.println("Error opening file.");
                 }
             } else {
-                System.out.println("No file selected.");
                 getBackToMainScreen();
             }
             showPackets();

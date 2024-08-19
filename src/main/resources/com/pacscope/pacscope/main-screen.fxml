@@ -6,12 +6,9 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #001E4D;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.MainController">
-   <children>
-      <ImageView fitHeight="300.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true">
-         <image>
+<VBox fx:id="vbox" alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: #001E4D;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.MainController">
+      <ImageView fx:id="title" pickOnBounds="true" preserveRatio="true">
             <Image url="@Logo.png" />
-         </image>
       </ImageView>
       <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onFileButtonClick" style="-fx-background-color: #012773;" textAlignment="CENTER" VBox.vgrow="ALWAYS">
          <VBox.margin>
@@ -19,9 +16,7 @@
          </VBox.margin>
          <graphic>
             <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-               <image>
                   <Image url="@OpenAFile.png" />
-               </image>
             </ImageView>
          </graphic>
       </Button>
@@ -31,9 +26,8 @@
          </VBox.margin>
          <graphic>
             <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-               <image>
                   <Image url="@LiveCapture.png" />
-               </image></ImageView>
+               </ImageView>
          </graphic>
       </Button>
       <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onHelpButtonClick" style="-fx-background-color: #012773;" VBox.vgrow="ALWAYS">
@@ -42,9 +36,8 @@
          </VBox.margin>
          <graphic>
             <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-               <image>
                   <Image url="@Help.png" />
-               </image></ImageView>
+               </ImageView>
          </graphic>
       </Button>
       <Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#onAboutButtonClick" style="-fx-background-color: #012773;" textAlignment="CENTER" VBox.vgrow="ALWAYS">
@@ -53,12 +46,10 @@
          </VBox.margin>
          <graphic>
             <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-               <image>
                   <Image url="@AboutUs.png" />
-               </image></ImageView>
+            </ImageView>
          </graphic>
       </Button>
-   </children>
    <effect>
       <DropShadow />
    </effect>
