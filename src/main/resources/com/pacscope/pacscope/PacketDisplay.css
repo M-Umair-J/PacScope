@@ -1,0 +1,6 @@
+.text-area {
+    -fx-control-inner-background: #BCC7FE;
+    -fx-font-size: 14px;
+    -fx-font-family: Consolas;
+    -fx-font-weight: bold;
+}

@@ -22,6 +22,8 @@ public class MainScreen extends Application {
         stage.setMinWidth(500);
         stage.centerOnScreen();
         stage.setResizable(true);
+        stage.setMaximized(true);
+        stage.setTitle("PacScope");
         stage.show();
         stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/pacscope/pacscope/icon.png"))));
         new Thread(() -> {

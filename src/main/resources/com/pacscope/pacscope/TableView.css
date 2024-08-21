@@ -3,8 +3,12 @@
     -fx-background-color: #02387A;
     -fx-font-weight: bold;
     }
-.table-row-cell {
+.table-view .table-row-cell {
     -fx-background-color: #BCC7FE;
-    -fx-text-fill: white;
+    -fx-text-fill: #2c2e33;
     -fx-font-weight: bold;
+}
+.table-view .table-cell {
+    -fx-text-fill: #2c2e33;
+    -fx-font-size: 14px;
 }
