@@ -2,22 +2,25 @@
 
 <?import java.net.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.effect.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox fx:id="vbox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: #001E4D;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.InterfaceSelectController">
+<VBox fx:id="vbox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: #001126;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.InterfaceSelectController">
    <stylesheets>
        <URL value="@InterfaceSelect.css" />
    </stylesheets>
-      <ImageView fx:id="imageView" preserveRatio="true">
-      <image>
-         <Image url="@LiveCaptureTitle.png" />
-      </image></ImageView>
-      <Button fx:id="button" mnemonicParsing="false" text="Button" />
-          <ListView fx:id="packetDisplayField" onMouseClicked="#onInterfaceSelected">
-              <effect>
-                  <Glow />
-              </effect>
+   <ToolBar fx:id="toolbar" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #001126;">
+         <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" onMouseClicked="#goBack" preserveRatio="true">
+             <Image url="@Back.png" />
+         </ImageView>
+      <Label text="Select the Interface to Capture Traffic" textFill="WHITE">
+         <font>
+            <Font name="Consolas Bold" size="14.0" />
+         </font>
+      </Label>
+   </ToolBar>
+          <ListView fx:id="interfaceDisplayField" onMouseClicked="#onInterfaceSelected">
+
          </ListView>
 </VBox>

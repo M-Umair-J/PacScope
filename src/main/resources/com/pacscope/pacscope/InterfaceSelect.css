@@ -6,5 +6,8 @@
 .list-view .list-cell{
     -fx-background-color:  #001E4D;
     -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-family: Consolas;
+    -fx-font-weight: bold;
     -fx-border-color:  #001126;
 }

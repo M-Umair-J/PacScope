@@ -2,7 +2,6 @@
 
 <?import java.net.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.effect.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
@@ -21,13 +20,10 @@
          </font></Label>
         </ToolBar>
         <TableView fx:id="packetCaptureField" editable="true" onMouseClicked="#displayPacket" prefHeight="200.0" prefWidth="600.0" styleClass="\@TableView.css">
-          <effect>
-              <Glow />
-            </effect>
             <columns>
                 <TableColumn fx:id="number" prefWidth="75.0" text="No" />
-                <TableColumn fx:id="srcIp" prefWidth="75.0" text="Source IP" />
-                <TableColumn fx:id="dstIp" prefWidth="75.0" text="Destination IP" />
+                <TableColumn fx:id="srcIp" prefWidth="75.0" text="Source Address" />
+                <TableColumn fx:id="dstIp" prefWidth="75.0" text="Destination Address" />
                 <TableColumn fx:id="protocol" prefWidth="75.0" text="Protocol" />
                 <TableColumn fx:id="length" prefWidth="75.0" text="Length" />
                 <TableColumn fx:id="info" prefWidth="75.0" text="Info" />

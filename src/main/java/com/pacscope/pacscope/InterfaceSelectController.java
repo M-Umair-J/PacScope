@@ -8,15 +8,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.ToolBar;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -26,21 +24,19 @@ public class InterfaceSelectController implements Initializable {
     @FXML
     private VBox vbox;
     @FXML
-    private ImageView imageView;
+    private ToolBar toolbar;
     @FXML
-    private Button button;
-
-
+    private ListView<String> interfaceDisplayField;
+    private int count;
     private Stage primaryStage;
     private static PcapNetworkInterface pcapNetworkInterface;
+    private List<PcapNetworkInterface> allDevs;
+
+
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
-    private List<PcapNetworkInterface> allDevs;
-    @FXML
-    private ListView<String> packetDisplayField;
     public void interfaceSelect() {
-
         try {
             allDevs = Pcaps.findAllDevs();
         } catch (PcapNativeException e) {
@@ -52,55 +48,65 @@ public class InterfaceSelectController implements Initializable {
         }
         List<PcapNetworkInterface> findAllDevs = allDevs;
         Platform.runLater(()->{
-            packetDisplayField.getItems().clear();
+            interfaceDisplayField.getItems().clear();
             ObservableList<String> items = FXCollections.observableArrayList();
-            int i = 1;
+            count = 1;
             for(PcapNetworkInterface dev : findAllDevs) {
                     if(dev.getDescription() != null && !dev.getDescription().trim().isEmpty()) {
-                        items.add(i + " : " + dev.getDescription());
-                        i++;
+                        items.add(count + " : " + dev.getDescription());
+                        count++;
                     }
             }
-            packetDisplayField.setItems(items);
+            interfaceDisplayField.setItems(items);
         });
     }
-    public void initialize(){
-        // Bind ImageView to VBox size
-        imageView.fitWidthProperty().bind(vbox.widthProperty().multiply(0.4)); // 80% of VBox width
-        imageView.fitHeightProperty().bind(vbox.heightProperty().multiply(0.4)); // 40% of VBox height
-
-        // Optionally, bind Button size to VBox size or ImageView size
-        button.prefWidthProperty().bind(vbox.widthProperty().multiply(0.1)); // 20% of VBox width
-        button.prefHeightProperty().bind(vbox.heightProperty().multiply(0.1)); // 10% of VBox height
-
-        // Optionally, adjust ListView size to fill remaining space
-        packetDisplayField.prefWidthProperty().bind(vbox.widthProperty().multiply(0.8)); // 80% of VBox width
-        packetDisplayField.prefHeightProperty().bind(vbox.heightProperty().multiply(0.5)); // 50% of VBox height
+    public void setBounds(){
+        toolbar.prefHeightProperty().bind(vbox.heightProperty().multiply(0.1));
+        toolbar.prefWidthProperty().bind(vbox.widthProperty());
+        interfaceDisplayField.prefWidthProperty().bind(vbox.widthProperty());
+        interfaceDisplayField.prefHeightProperty().bind(vbox.heightProperty().multiply(0.9));
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        initialize();
-        new Thread(this::interfaceSelect).start();
+        setBounds();
+        interfaceSelect();
     }
     @FXML
     public void onInterfaceSelected() throws IOException {
-        int index = packetDisplayField.getSelectionModel().getSelectedIndex();
-        if(index>0){
-            pcapNetworkInterface = allDevs.get(index-1);
+        int index = interfaceDisplayField.getSelectionModel().getSelectedIndex();
+        if(index>=0 && index<count){
+            pcapNetworkInterface = allDevs.get(index);
+        }
+        else{
+            return;
         }
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-capture.fxml"));
         Parent root = loader.load();
-
-        // Pass the primaryStage to the PacketCaptureController if needed
         PacketCaptureController controller = loader.getController();
         controller.setPrimaryStage(primaryStage);
-
-        Scene scene = new Scene(root, 600, 600);
+        Scene scene = new Scene(root, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
         primaryStage.setScene(scene);
         primaryStage.show();
     }
     static PcapNetworkInterface getSelectedInterface(){
         return pcapNetworkInterface;
     }
+    @FXML
+    public void goBack(){
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/pacscope/pacscope/main-screen.fxml"));
+                Parent root = loader.load();
+                MainController mainController = loader.getController();
+                mainController.setPrimaryStage(primaryStage);
+                Scene scene = new Scene(root, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
+                primaryStage.setScene(scene);
+                primaryStage.show();
+            } catch (IOException e) {
+                System.out.println("Failed to load the main screen");
+            }
+        });
+    }
+
 }

@@ -1,35 +1,65 @@
 package com.pacscope.pacscope;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ListView;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.pcap4j.core.*;
+import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.Packet;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static javafx.collections.FXCollections.observableArrayList;
 
 public class PacketCaptureController {
+    @FXML
+    private TableView<ListedPackets> packetCaptureField;
+    @FXML
+    private ToolBar toolbar;
+    @FXML
+    private VBox vbox;
+    @FXML
+    private ImageView pauseImg;
+
+    @FXML
+    private TableColumn<ListedPackets, String> number;
+    @FXML
+    private TableColumn<ListedPackets, String> srcIp;
+    @FXML
+    private TableColumn<ListedPackets, String> dstIp;
+    @FXML
+    private TableColumn<ListedPackets, String> protocol;
+    @FXML
+    private TableColumn<ListedPackets, String> length;
+    @FXML
+    private TableColumn<ListedPackets, String> info;
+    @FXML
+    private Label interfaceLabel;
+    private ObservableList<ListedPackets> listedPackets;
     private Stage primaryStage;
     private static PcapNetworkInterface selectedInterface;
     private static Packet selectedPacket;
     private volatile boolean capturing;
     private Thread thread;
-    @FXML
-    private ListView<String> packetCaptureField;
-    private static final List<Packet> packetList = new ArrayList<>();
-    private static final ObservableList<String> items = FXCollections.observableArrayList();
+    private static final List<EthernetPacket> packetList = new ArrayList<>();
 
     public PacketCaptureController(){
         capturing = true;
@@ -104,7 +134,7 @@ public class PacketCaptureController {
                 Parent root = loader.load();
                 MainController mainController = loader.getController();
                 mainController.setPrimaryStage(primaryStage);
-                Scene scene = new Scene(root, 600, 600);
+                Scene scene = new Scene(root, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
                 primaryStage.setScene(scene);
                 primaryStage.show();
             } catch (IOException e) {
@@ -123,19 +153,26 @@ public class PacketCaptureController {
         try {
             handle = selectedInterface.openLive(snapLength, mode, timeout);
             Packet packet = null;
+            listedPackets = observableArrayList();
+            int i = 0;
             while (capturing && !Thread.currentThread().isInterrupted()) {
                 try {
                     packet = handle.getNextPacket();
                 } catch (NotOpenException e) {
                     e.printStackTrace();
                 }
-                if (packet != null) {
-                    Packet finalPacket = packet;
-                    synchronized (packetList) {
-                        packetList.add(packet);
+                if (packet != null && capturing) {
+                    EthernetPacket etherPacket = packet.get(EthernetPacket.class);
+                    String srcAddr = DisplayingPacketsInTable.getSourceAddress(etherPacket);
+                    String dstAddr = DisplayingPacketsInTable.getDestinationAddress(etherPacket);
+                    String protocolName = DisplayingPacketsInTable.getProtocolName(etherPacket);
+                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName,String.valueOf(packet.length()),packet.getPayload().getHeader().toString()));
+                    synchronized (packetList){
+                        packetList.add(etherPacket);
                     }
-                    Platform.runLater(() -> items.add(finalPacket.getHeader().toString()));
-                    packetCaptureField.setItems(items);
+                    showPackets();
+                    primaryStage.setOnCloseRequest(event -> System.exit(0));
+
                 }
             }
         } catch (PcapNativeException e) {
@@ -146,26 +183,62 @@ public class PacketCaptureController {
             }
         }
     }
+    public void showPackets(){
+        number.setCellValueFactory(new PropertyValueFactory<>("number"));
+        srcIp.setCellValueFactory(new PropertyValueFactory<>("source"));
+        dstIp.setCellValueFactory(new PropertyValueFactory<>("destination"));
+        protocol.setCellValueFactory(new PropertyValueFactory<>("protocol"));
+        length.setCellValueFactory(new PropertyValueFactory<>("length"));
+        info.setCellValueFactory(new PropertyValueFactory<>("info"));
+        Platform.runLater(() -> packetCaptureField.setItems(listedPackets));
+    }
 
     @FXML
     public void displayPacket() throws IOException {
         int index = packetCaptureField.getSelectionModel().getSelectedIndex();
-        if(index > 0){
-            selectedPacket = packetList.get(index-1);
+        if(index >= 0){
+            selectedPacket = packetList.get(index);
         }
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-display.fxml"));
         Parent root = loader.load();
         PacketDisplayController packetDisplayController = loader.getController();
+        packetDisplayController.setPacket(selectedPacket);
         Scene scene = new Scene(root, 600, 600);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        Stage newStage = new Stage();
+        newStage.setScene(scene);
+        newStage.setTitle("Packet");
+        newStage.show();
+        newStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/pacscope/pacscope/icon.png"))));
     }
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        setDynamicComponents();
+        interfaceLabel.setText(selectedInterface.getDescription());
+    }
+    @FXML
+    public void pauseCapture(){
+        capturing = false;
+        updateCaptureButtons();
+
+    }
+    private void updateCaptureButtons(){
+        pauseImg.setDisable(!capturing);
     }
 
-    public static Packet getSelectedPacket(){
-        return selectedPacket;
+    public void setDynamicComponents(){
+        vbox.setPrefHeight(primaryStage.getHeight());
+        vbox.setPrefWidth(primaryStage.getWidth());
+        toolbar.prefWidthProperty().bind(vbox.widthProperty());
+        toolbar.prefHeightProperty().bind(vbox.heightProperty().multiply(0.1));
+        packetCaptureField.prefHeightProperty().bind(vbox.heightProperty().multiply(0.9));
+        packetCaptureField.prefWidthProperty().bind(vbox.widthProperty());
+        number.prefWidthProperty().bind(packetCaptureField.widthProperty().multiply(0.05)); // 10% of the TableView width
+        srcIp.prefWidthProperty().bind(packetCaptureField.widthProperty().multiply(0.15)); // 20% of the TableView width
+        dstIp.prefWidthProperty().bind(packetCaptureField.widthProperty().multiply(0.15)); // 20% of the TableView width
+        protocol.prefWidthProperty().bind(packetCaptureField.widthProperty().multiply(0.05)); // 15% of the TableView width
+        length.prefWidthProperty().bind(packetCaptureField.widthProperty().multiply(0.1)); // 15% of the TableView width
+        info.prefWidthProperty().bind(packetCaptureField.widthProperty().multiply(0.5)); // 20% of the TableView width
     }
 }

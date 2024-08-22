@@ -1,17 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-
-<?import javafx.scene.effect.Glow?>
-<?import javafx.scene.layout.VBox?>
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="Infinity" minWidth="Infinity" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.PacketCaptureController">
-    <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" >
-        <ListView fx:id = "packetCaptureField" onMouseClicked="#displayPacket" onKeyPressed="#saveFile" prefHeight="200.0" prefWidth="600.0" style="-fx-background-color: Gray; -fx-border-color: Cyan; ">
-            <effect>
-                <Glow />
-            </effect></ListView>
-    </ScrollPane>
-    <Button mnemonicParsing="false" onAction="#endCapture" text="End Capture" />
+<VBox fx:id="vbox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="Infinity" minWidth="Infinity" onKeyPressed="#saveFile" style="-fx-background-color: #001126;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.PacketCaptureController">
+    <stylesheets>
+        <URL value="@TableView.css" />
+    </stylesheets>
+   <ToolBar fx:id="toolbar" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #001126;">
+          <ImageView fitHeight="30" fitWidth="30" onMouseClicked="#endCapture" preserveRatio="true">
+              <Image url="@Save.png" />
+          </ImageView>
+          <ImageView fx:id="pauseImg" fitHeight="30" fitWidth="30" onMouseClicked="#pauseCapture" preserveRatio="true">
+              <Image url="@Pause.png" />
+          </ImageView>
+      <Label fx:id="interfaceLabel" text="Label" textFill="WHITE">
+         <font>
+            <Font name="Consolas Bold" size="14.0" />
+         </font>
+      </Label>
+   </ToolBar>
+   <TableView fx:id="packetCaptureField" onMouseClicked="#displayPacket" prefHeight="200.0" prefWidth="200.0">
+     <columns>
+       <TableColumn fx:id="number" prefWidth="75.0" text="No" />
+       <TableColumn fx:id="srcIp" prefWidth="75.0" text="Soruce Address" />
+         <TableColumn fx:id="dstIp" prefWidth="75.0" text="Destination Address" />
+         <TableColumn fx:id="protocol" prefWidth="75.0" text="Protocol" />
+         <TableColumn fx:id="length" prefWidth="75.0" text="Length" />
+         <TableColumn fx:id="info" prefWidth="75.0" text="Info" />
+     </columns>
+   </TableView>
 </VBox>
-

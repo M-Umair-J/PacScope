@@ -54,7 +54,7 @@ public class MainController implements Initializable {
         Parent main = loader.load();
         InterfaceSelectController interfaceSelectController = loader.getController();
         interfaceSelectController.setPrimaryStage(primaryStage);
-        Scene mainScene = new Scene(main, 600, 600);
+        Scene mainScene = new Scene(main, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
         primaryStage.setScene(mainScene);
         primaryStage.show();
     }
