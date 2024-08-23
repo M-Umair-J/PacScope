@@ -47,7 +47,7 @@ public class OpenCaptureFile{
     private TextField filter;
 
     private static String filterText = "";
-    private static final List<EthernetPacket> packetList = new ArrayList<>();
+    private static final List<Packet> packetList = new ArrayList<>();
     public static boolean opening = true;
     Stage primaryStage;
     private Thread thread;
@@ -124,22 +124,29 @@ public class OpenCaptureFile{
                     String dstAddr;
                     String protocolName;
                     packetList.clear();
-                    while ((packet = handle.getNextPacket()) != null) {
-                        EthernetPacket ethernetPacket = packet.get(EthernetPacket.class);
-                        srcAddr = DisplayingPacketsInTable.getSourceAddress(ethernetPacket);
-                        dstAddr = DisplayingPacketsInTable.getDestinationAddress(ethernetPacket);
-                        protocolName = DisplayingPacketsInTable.getProtocolName(ethernetPacket);
+                    packet = handle.getNextPacket();
+                    while (packet != null) {
+                        String headerInfo = packet.getHeader().toString();
+                        if(packet.getPayload()!=null && packet.getPayload().getHeader()!=null){
+                            headerInfo = packet.getPayload().getHeader().toString();
+                        }
+                        srcAddr = DisplayingPacketsInTable.getSourceAddress(packet);
+                        dstAddr = DisplayingPacketsInTable.getDestinationAddress(packet);
+                        protocolName = DisplayingPacketsInTable.getProtocolName(packet);
                             if(filterText.isEmpty()){
-                                listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
-                                packetList.add(ethernetPacket);
+                                listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
+                                packetList.add(packet);
                             }
                             else if(Objects.equals(protocolName, filterText)) {
-                                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
-                                    packetList.add(ethernetPacket);
+                                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
+                                    packetList.add(packet);
                                 }
+                            packet = handle.getNextPacket();
+
                             }
-                    handle.close();
+                        handle.close();
                 } catch (Exception e) {
+                    e.printStackTrace();
                     System.out.println("Error opening file.");
                 }
             } else {

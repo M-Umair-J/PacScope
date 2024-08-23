@@ -4,77 +4,204 @@ import javafx.scene.control.Alert;
 import org.pcap4j.packet.*;
 import org.pcap4j.packet.namednumber.EtherType;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DisplayingPacketsInTable {
-    public static String getSourceAddress(EthernetPacket ethernetPacket){
+    public static String getSourceAddress(Packet packet){
         String srcAddr;
-        if (isIPV4Packet(ethernetPacket)) {
-            IpV4Packet ipv4Packet = ethernetPacket.get(IpV4Packet.class);
-            srcAddr = ipv4Packet.getHeader().getSrcAddr().getHostAddress();
-        } else if (isIPV6Packet(ethernetPacket)) {
-            IpV6Packet ipV6Packet = ethernetPacket.get(IpV6Packet.class);
-            srcAddr = ipV6Packet.getHeader().getSrcAddr().getHostAddress();
+        String regx = "\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}";
+        Pattern pattern = Pattern.compile(regx);
+        Matcher matcher;
+        if(isNotEtherPacket(packet)){
+            if(isLoopBackPacket(packet)){
+                if(isLoopBackAndIpv4Packet(packet)){
+                    IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
+                    srcAddr = ipV4Packet.getHeader().getSrcAddr().toString();
+                    matcher = pattern.matcher(srcAddr);
+                    if(matcher.find()){
+                        srcAddr = matcher.group();
+                    }
+                }
+                else if(isLoopBackAndIpv6Packet(packet)){
+                    IpV6Packet ipV6Packet = packet.get(IpV6Packet.class);
+                    srcAddr = ipV6Packet.getHeader().getSrcAddr().toString();
+                    matcher = pattern.matcher(srcAddr);
+                    if(matcher.find()){
+                        srcAddr = matcher.group();
+                    }
+                }
+                else{
+                    srcAddr = "Unknown";
+                }
+            }
+            else{
+                srcAddr = "Unknown";
+            }
         }
-        else{
-            srcAddr = ethernetPacket.getHeader().getSrcAddr().toString();
+        else {
+            EthernetPacket ethernetPacket = packet.get(EthernetPacket.class);
+            if (isIPV4Packet(ethernetPacket)) {
+                IpV4Packet ipv4Packet = ethernetPacket.get(IpV4Packet.class);
+                srcAddr = ipv4Packet.getHeader().getSrcAddr().getHostAddress();
+            } else if (isIPV6Packet(ethernetPacket)) {
+                IpV6Packet ipV6Packet = ethernetPacket.get(IpV6Packet.class);
+                srcAddr = ipV6Packet.getHeader().getSrcAddr().getHostAddress();
+            } else {
+                srcAddr = ethernetPacket.getHeader().getSrcAddr().toString();
+            }
         }
         return  srcAddr;
     }
 
 
-    public static String getDestinationAddress(EthernetPacket ethernetPacket){
+    public static String getDestinationAddress(Packet packet){
         String dstAddr;
-        if (isIPV4Packet(ethernetPacket)) {
-            IpV4Packet ipv4Packet = ethernetPacket.get(IpV4Packet.class);
-            dstAddr = ipv4Packet.getHeader().getDstAddr().getHostAddress();
-        } else if (isIPV6Packet(ethernetPacket)) {
-            IpV6Packet ipV6Packet = ethernetPacket.get(IpV6Packet.class);
-            dstAddr = ipV6Packet.getHeader().getDstAddr().getHostAddress();
+        String regx = "\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}";
+        Pattern pattern = Pattern.compile(regx);
+        Matcher matcher;
+        if(isNotEtherPacket(packet)){
+            if(isLoopBackPacket(packet)){
+                if(isLoopBackAndIpv4Packet(packet)){
+                    IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
+                    dstAddr = ipV4Packet.getHeader().getDstAddr().toString();
+                    matcher = pattern.matcher(dstAddr);
+                    if(matcher.find()){
+                        dstAddr = matcher.group();
+                    }
+                }
+                else if(isLoopBackAndIpv6Packet(packet)){
+                    IpV6Packet ipV6Packet = packet.get(IpV6Packet.class);
+                    dstAddr = ipV6Packet.getHeader().getDstAddr().toString();
+                    matcher = pattern.matcher(dstAddr);
+                    if(matcher.find()){
+                        dstAddr = matcher.group();
+                    }
+                }
+                else{
+                    dstAddr = "Unknown";
+                }
+            }
+            else{
+                dstAddr = "Unknown";
+            }
         }
-        else{
-            dstAddr = ethernetPacket.getHeader().getDstAddr().toString();
+        else {
+            EthernetPacket ethernetPacket = packet.get(EthernetPacket.class);
+            if (isIPV4Packet(ethernetPacket)) {
+                IpV4Packet ipv4Packet = ethernetPacket.get(IpV4Packet.class);
+                dstAddr = ipv4Packet.getHeader().getDstAddr().getHostAddress();
+            } else if (isIPV6Packet(ethernetPacket)) {
+                IpV6Packet ipV6Packet = ethernetPacket.get(IpV6Packet.class);
+                dstAddr = ipV6Packet.getHeader().getDstAddr().getHostAddress();
+            } else {
+                dstAddr = ethernetPacket.getHeader().getDstAddr().toString();
+            }
         }
         return dstAddr;
     }
 
-    public static String getProtocolName(EthernetPacket ethernetPacket){
+    public static String getProtocolName(Packet packet){
         String protocolName;
-        if (isIPV4Packet(ethernetPacket)) {
-            IpV4Packet ipv4Packet = ethernetPacket.get(IpV4Packet.class);
-            if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "6 (TCP)")) {
-                TcpPacket tcpPacket = ipv4Packet.get(TcpPacket.class);
-                protocolName = identifyTCPProtocol(tcpPacket);
-            } else if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "17 (UDP)")) {
-                UdpPacket udpPacket = ipv4Packet.get(UdpPacket.class);
-                protocolName = identifyUDPProtocol(udpPacket);
-
-            } else if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "1 (ICMP)")) {
-                protocolName = "ICMP";
-            } else {
-                protocolName = "IPv4";
+        String regx = "[a-zA-Z]+\\d*";
+        Pattern pattern = Pattern.compile(regx);
+        Matcher matcher;
+        if(isNotEtherPacket(packet)){
+            if(isLoopBackPacket(packet)){
+                if(isLoopBackAndIpv4Packet(packet)){
+                    IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
+                    protocolName = ipV4Packet.getHeader().getProtocol().toString();
+                    matcher = pattern.matcher(protocolName);
+                    if(matcher.find()){
+                        protocolName = matcher.group();
+                    }
+                    if(Objects.equals(protocolName, "ICMPv4")){
+                        protocolName = "ICMP";
+                    }
+                }
+                else if(isLoopBackAndIpv6Packet(packet)){
+                    IpV6Packet ipV6Packet = packet.get(IpV6Packet.class);
+                    protocolName = ipV6Packet.getHeader().getProtocol().toString();
+                    matcher = pattern.matcher(protocolName);
+                    if(matcher.find()){
+                        protocolName = matcher.group();
+                    }
+                }
+                else{
+                    protocolName = packet.getHeader().toString();
+                }
             }
-        } else if (isIPV6Packet(ethernetPacket)) {
-            IpV6Packet ipV6Packet = ethernetPacket.get(IpV6Packet.class);
-            if (ipV6Packet.getHeader().getProtocol().toString().equals("6 (TCP)")) {
-                TcpPacket tcpPacket = ipV6Packet.get(TcpPacket.class);
-                protocolName = identifyTCPProtocol(tcpPacket);
-            } else if (Objects.equals(ipV6Packet.getHeader().getProtocol().toString(), "17 (UDP)")) {
-                UdpPacket udpPacket = ipV6Packet.get(UdpPacket.class);
-                protocolName = identifyUDPProtocol(udpPacket);
-            } else if (Objects.equals(ipV6Packet.getHeader().getNextHeader().toString(), "58 (ICMPv6)")) {
-                protocolName = "ICMPv6";
-            } else {
-                protocolName = "IPv6";
+            else{
+                protocolName = packet.getHeader().getClass().toString();
             }
         }
-        else{
-            protocolName = ethernetPacket.getHeader().getType().name();
+        else {
+            EthernetPacket ethernetPacket = packet.get(EthernetPacket.class);
+            if (isIPV4Packet(ethernetPacket)) {
+                IpV4Packet ipv4Packet = ethernetPacket.get(IpV4Packet.class);
+                if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "6 (TCP)")) {
+                    TcpPacket tcpPacket = ipv4Packet.get(TcpPacket.class);
+                    protocolName = identifyTCPProtocol(tcpPacket);
+                } else if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "17 (UDP)")) {
+                    UdpPacket udpPacket = ipv4Packet.get(UdpPacket.class);
+                    protocolName = identifyUDPProtocol(udpPacket);
+
+                } else if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "1 (ICMP)")) {
+                    protocolName = "ICMP";
+                } else {
+                    protocolName = "IPv4";
+                }
+            } else if (isIPV6Packet(ethernetPacket)) {
+                IpV6Packet ipV6Packet = ethernetPacket.get(IpV6Packet.class);
+                if (ipV6Packet.getHeader().getProtocol().toString().equals("6 (TCP)")) {
+                    TcpPacket tcpPacket = ipV6Packet.get(TcpPacket.class);
+                    protocolName = identifyTCPProtocol(tcpPacket);
+                } else if (Objects.equals(ipV6Packet.getHeader().getProtocol().toString(), "17 (UDP)")) {
+                    UdpPacket udpPacket = ipV6Packet.get(UdpPacket.class);
+                    protocolName = identifyUDPProtocol(udpPacket);
+                } else if (Objects.equals(ipV6Packet.getHeader().getNextHeader().toString(), "58 (ICMPv6)")) {
+                    protocolName = "ICMPv6";
+                } else {
+                    protocolName = "IPv6";
+                }
+            } else {
+                protocolName = ethernetPacket.getHeader().getType().name();
+            }
         }
         return protocolName;
     }
 
+    private static boolean isLoopBackAndIpv6Packet(Packet packet) {
+        return packet.getPayload() instanceof IpV6Packet;
+    }
+
+    private static boolean isLoopBackAndIpv4Packet(Packet packet) {
+        return packet.getPayload() instanceof IpV4Packet;
+    }
+
     private static boolean isIPV4Packet(EthernetPacket ethernetPacket){
         return  ethernetPacket.getHeader().getType() == EtherType.IPV4;
+    }
+
+    private static boolean isNotEtherPacket(Packet packet){
+        return !packet.contains(EthernetPacket.class);
+    }
+
+    private static boolean isLoopBackPacket(Packet packet){
+        if(packet instanceof BsdLoopbackPacket){
+            return true;
+        }
+        else if(packet instanceof LinuxSllPacket){
+            return true;
+        }
+        else if(packet instanceof RadiotapPacket){
+            return true;
+        }
+        else if(packet instanceof IpV4Packet || packet instanceof IpV6Packet){
+            return true;
+        }
+        else return false;
+
     }
 
     private static boolean isIPV6Packet(EthernetPacket ethernetPacket){
@@ -161,4 +288,3 @@ public class DisplayingPacketsInTable {
         });
     }
 }
-

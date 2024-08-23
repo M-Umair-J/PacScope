@@ -16,7 +16,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.pcap4j.core.*;
-import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.Packet;
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +53,7 @@ public class PacketCaptureController {
     private TextField filter;
 
     private String filterText = "";
-    private static final List<EthernetPacket> filteredPacketList = new ArrayList<>();
+    private static final List<Packet> filteredPacketList = new ArrayList<>();
     private ObservableList<ListedPackets> listedPacketsFiltered;
     ObservableList<ListedPackets> listedPackets = observableArrayList();
     private Stage primaryStage;
@@ -62,7 +61,7 @@ public class PacketCaptureController {
     private static Packet selectedPacket;
     private volatile boolean capturing;
     private Thread thread;
-    private static final List<EthernetPacket> packetList = new ArrayList<>();
+    private static final List<Packet> packetList = new ArrayList<>();
     private boolean filtered;
     private int j = 0;
 
@@ -167,25 +166,35 @@ public class PacketCaptureController {
                 } catch (NotOpenException e) {
                     e.printStackTrace();
                 }
+                String srcAddr;
+                String dstAddr;
+                String protocolName;
                 if (packet != null && capturing) {
-                    EthernetPacket etherPacket = packet.get(EthernetPacket.class);
-                    String srcAddr = DisplayingPacketsInTable.getSourceAddress(etherPacket);
-                    String dstAddr = DisplayingPacketsInTable.getDestinationAddress(etherPacket);
-                    String protocolName = DisplayingPacketsInTable.getProtocolName(etherPacket);
-                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                    String headerInfo = packet.getHeader().toString();
+                    if(packet.getPayload()!=null && packet.getPayload().getHeader()!=null){
+                        headerInfo = packet.getPayload().getHeader().toString();
+                    }
+                    srcAddr = DisplayingPacketsInTable.getSourceAddress(packet);
+                    dstAddr = DisplayingPacketsInTable.getDestinationAddress(packet);
+                    protocolName = DisplayingPacketsInTable.getProtocolName(packet);
+                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
                     synchronized (packetList) {
-                        packetList.add(etherPacket);
+                        packetList.add(packet);
                     }
                     if(!filtered) {
                         showPackets(listedPackets);
                     }
                     else{
                         if(j == 0){
-                            for(EthernetPacket packet1: packetList){
+                            for(Packet packet1: packetList){
+                                String headerInfo1 = packet1.getHeader().toString();
+                                if(packet1.getPayload()!=null && packet.getPayload().getHeader()!=null){
+                                    headerInfo1 = packet1.getPayload().getHeader().toString();
+                                }
                                 if(Objects.equals(DisplayingPacketsInTable.getProtocolName(packet1), filterText)) {
                                     if(!filteredPacketList.contains(packet1)) {
                                         filteredPacketList.add(packet1);
-                                        listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.lastIndexOf(packet1)+1), DisplayingPacketsInTable.getSourceAddress(packet1), DisplayingPacketsInTable.getDestinationAddress(packet1), DisplayingPacketsInTable.getProtocolName(packet1), String.valueOf(packet1.length()), packet1.getPayload().getHeader().toString()));
+                                        listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.lastIndexOf(packet1)+1), DisplayingPacketsInTable.getSourceAddress(packet1), DisplayingPacketsInTable.getDestinationAddress(packet1), DisplayingPacketsInTable.getProtocolName(packet1), String.valueOf(packet1.length()), headerInfo1));
                                     }
                                 }
                             }
@@ -193,8 +202,8 @@ public class PacketCaptureController {
                         else{
                             if(Objects.equals(protocolName, filterText)) {
                                 if(!filteredPacketList.contains(packet)) {
-                                    filteredPacketList.add(etherPacket);
-                                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                                    filteredPacketList.add(packet);
+                                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
                                 }
                             }
                         }
@@ -286,7 +295,7 @@ public class PacketCaptureController {
         }
         else{
             int i = 0;
-            for(EthernetPacket packet: packetList) {
+            for(Packet packet: packetList) {
                 i++;
                 if (Objects.equals(filterText, DisplayingPacketsInTable.getProtocolName(packet))) {
                     filteredPacketList.add(packet);
