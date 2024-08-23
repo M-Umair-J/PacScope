@@ -10,6 +10,7 @@ module com.pacscope.pacscope {
     requires eu.hansolo.tilesfx;
     requires org.pcap4j.core;
     requires java.desktop;
+    requires org.apache.logging.log4j.core;
 
     opens com.pacscope.pacscope to javafx.fxml;
     exports com.pacscope.pacscope;

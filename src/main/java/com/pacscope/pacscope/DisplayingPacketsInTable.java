@@ -1,4 +1,6 @@
 package com.pacscope.pacscope;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import org.pcap4j.packet.*;
 import org.pcap4j.packet.namednumber.EtherType;
 import java.util.Objects;
@@ -46,7 +48,7 @@ public class DisplayingPacketsInTable {
                 UdpPacket udpPacket = ipv4Packet.get(UdpPacket.class);
                 protocolName = identifyUDPProtocol(udpPacket);
 
-            } else if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "1 (ICMP")) {
+            } else if (Objects.equals(ipv4Packet.getHeader().getProtocol().toString(), "1 (ICMP)")) {
                 protocolName = "ICMP";
             } else {
                 protocolName = "IPv4";
@@ -59,7 +61,7 @@ public class DisplayingPacketsInTable {
             } else if (Objects.equals(ipV6Packet.getHeader().getProtocol().toString(), "17 (UDP)")) {
                 UdpPacket udpPacket = ipV6Packet.get(UdpPacket.class);
                 protocolName = identifyUDPProtocol(udpPacket);
-            } else if (Objects.equals(ipV6Packet.getHeader().getProtocol().toString(), "1 (ICMP")) {
+            } else if (Objects.equals(ipV6Packet.getHeader().getNextHeader().toString(), "58 (ICMPv6)")) {
                 protocolName = "ICMPv6";
             } else {
                 protocolName = "IPv6";
@@ -113,6 +115,8 @@ public class DisplayingPacketsInTable {
         }
         else if(Objects.equals(tcpPacket.getHeader().getSrcPort().toString(), "23 (Telnet)") || Objects.equals(tcpPacket.getHeader().getDstPort().toString(),"23 (Telnet)")){
             protocolName = "Telnet";
+        } else if (Objects.equals(tcpPacket.getHeader().getSrcPort().toString(), "53 (Domain Name Server)") || Objects.equals(tcpPacket.getHeader().getDstPort().toString(), "53 (Domain Name Server)")) {
+            protocolName = "DNS";
         }
         else {
             protocolName = "TCP";
@@ -121,7 +125,7 @@ public class DisplayingPacketsInTable {
     }
     public static String identifyUDPProtocol(UdpPacket udpPacket){
         String protocolName;
-        if(Objects.equals(udpPacket.getHeader().getSrcPort().toString(), "53 (DNS)") || Objects.equals(udpPacket.getHeader().getDstPort().toString(), "53 (DNS)")){
+        if(Objects.equals(udpPacket.getHeader().getSrcPort().toString(), "53 (Domain Name Server)") || Objects.equals(udpPacket.getHeader().getDstPort().toString(), "53 (Domain Name Server)")){
             protocolName = "DNS";
         }
         else if(Objects.equals(udpPacket.getHeader().getSrcPort().toString(), "161 (SNMP)") ||Objects.equals(udpPacket.getHeader().getDstPort().toString(), "161 (SNMP)") || Objects.equals(udpPacket.getHeader().getSrcPort().toString(), "162") || Objects.equals(udpPacket.getHeader().getDstPort().toString(), "162")){
@@ -143,6 +147,18 @@ public class DisplayingPacketsInTable {
             protocolName = "UDP";
         }
         return protocolName;
+    }
+    public static boolean isValidFilter(String protocolFilter){
+        return Objects.equals(protocolFilter, "TCP") || Objects.equals(protocolFilter, "IPv4") || Objects.equals(protocolFilter, "IPv6") || Objects.equals(protocolFilter, "ARP") || Objects.equals(protocolFilter, "ICMP") || Objects.equals(protocolFilter, "ICMPv6") || Objects.equals(protocolFilter, "HTTP") || Objects.equals(protocolFilter, "HTTPS") || Objects.equals(protocolFilter, "UDP") || Objects.equals(protocolFilter, "FTP") || Objects.equals(protocolFilter, "FTPS") || Objects.equals(protocolFilter, "IMAP") || Objects.equals(protocolFilter, "IMAPS") || Objects.equals(protocolFilter, "SMTP") || Objects.equals(protocolFilter, "POP3") || Objects.equals(protocolFilter, "POP3S") || Objects.equals(protocolFilter, "SSH") || Objects.equals(protocolFilter, "Telnet") || Objects.equals(protocolFilter, "SNMP") || Objects.equals(protocolFilter, "NTP") || Objects.equals(protocolFilter, "VoIP") || Objects.equals(protocolFilter, "DHCP") || Objects.equals(protocolFilter, "mDNS") || Objects.equals(protocolFilter, "DNS");
+    }
+    public static void generateAlertInvalidFilter(String filter){
+        Platform.runLater(()->{
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Invalid Filter");
+            alert.setHeaderText(null);
+            alert.setContentText(filter + " is an invalid filter!");
+            alert.show();
+        });
     }
 }
 

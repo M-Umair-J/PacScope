@@ -6,10 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.ToolBar;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -53,13 +50,22 @@ public class PacketCaptureController {
     private TableColumn<ListedPackets, String> info;
     @FXML
     private Label interfaceLabel;
-    private ObservableList<ListedPackets> listedPackets;
+    @FXML
+    private TextField filter;
+
+    private String filterText = "";
+    private static final List<EthernetPacket> filteredPacketList = new ArrayList<>();
+    private ObservableList<ListedPackets> listedPacketsFiltered;
+    ObservableList<ListedPackets> listedPackets = observableArrayList();
     private Stage primaryStage;
     private static PcapNetworkInterface selectedInterface;
     private static Packet selectedPacket;
     private volatile boolean capturing;
     private Thread thread;
     private static final List<EthernetPacket> packetList = new ArrayList<>();
+    private boolean filtered;
+    private int j = 0;
+
 
     public PacketCaptureController(){
         capturing = true;
@@ -153,7 +159,7 @@ public class PacketCaptureController {
         try {
             handle = selectedInterface.openLive(snapLength, mode, timeout);
             Packet packet = null;
-            listedPackets = observableArrayList();
+            listedPacketsFiltered = observableArrayList();
             int i = 0;
             while (capturing && !Thread.currentThread().isInterrupted()) {
                 try {
@@ -166,11 +172,35 @@ public class PacketCaptureController {
                     String srcAddr = DisplayingPacketsInTable.getSourceAddress(etherPacket);
                     String dstAddr = DisplayingPacketsInTable.getDestinationAddress(etherPacket);
                     String protocolName = DisplayingPacketsInTable.getProtocolName(etherPacket);
-                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName,String.valueOf(packet.length()),packet.getPayload().getHeader().toString()));
-                    synchronized (packetList){
+                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                    synchronized (packetList) {
                         packetList.add(etherPacket);
                     }
-                    showPackets();
+                    if(!filtered) {
+                        showPackets(listedPackets);
+                    }
+                    else{
+                        if(j == 0){
+                            for(EthernetPacket packet1: packetList){
+                                if(Objects.equals(DisplayingPacketsInTable.getProtocolName(packet1), filterText)) {
+                                    if(!filteredPacketList.contains(packet1)) {
+                                        filteredPacketList.add(packet1);
+                                        listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.lastIndexOf(packet1)+1), DisplayingPacketsInTable.getSourceAddress(packet1), DisplayingPacketsInTable.getDestinationAddress(packet1), DisplayingPacketsInTable.getProtocolName(packet1), String.valueOf(packet1.length()), packet1.getPayload().getHeader().toString()));
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            if(Objects.equals(protocolName, filterText)) {
+                                if(!filteredPacketList.contains(packet)) {
+                                    filteredPacketList.add(etherPacket);
+                                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                                }
+                            }
+                        }
+                        showPackets(listedPacketsFiltered);
+                        j++;
+                    }
                     primaryStage.setOnCloseRequest(event -> System.exit(0));
 
                 }
@@ -183,7 +213,32 @@ public class PacketCaptureController {
             }
         }
     }
-    public void showPackets(){
+    @FXML
+    private void filterOut(){
+        filter.setOnAction(event -> {
+            if(DisplayingPacketsInTable.isValidFilter(filter.getText())){
+                if(!Objects.equals(filterText, filter.getText())) {
+                    filterText = filter.getText();
+                    j = 0;
+                    filteredPacketList.clear();
+                    listedPacketsFiltered.clear();
+                }
+                filtered = true;
+            }
+            else{
+                if(!DisplayingPacketsInTable.isValidFilter(filter.getText()) && !filter.getText().isEmpty()){
+                    DisplayingPacketsInTable.generateAlertInvalidFilter(filter.getText());
+                }
+                filterText = "";
+                filtered = false;
+            }
+            if(!capturing){
+                pauseCapture();
+            }
+        });
+    }
+
+    public void showPackets(ObservableList<ListedPackets> listedPackets){
         number.setCellValueFactory(new PropertyValueFactory<>("number"));
         srcIp.setCellValueFactory(new PropertyValueFactory<>("source"));
         dstIp.setCellValueFactory(new PropertyValueFactory<>("destination"));
@@ -197,7 +252,12 @@ public class PacketCaptureController {
     public void displayPacket() throws IOException {
         int index = packetCaptureField.getSelectionModel().getSelectedIndex();
         if(index >= 0){
-            selectedPacket = packetList.get(index);
+            if(packetCaptureField.getItems() == listedPacketsFiltered){
+                selectedPacket = filteredPacketList.get(index);
+            }
+            else{
+                selectedPacket = packetList.get(index);
+            }
         }
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-display.fxml"));
@@ -221,6 +281,20 @@ public class PacketCaptureController {
     public void pauseCapture(){
         capturing = false;
         updateCaptureButtons();
+        if(!filtered){
+            showPackets(listedPackets);
+        }
+        else{
+            int i = 0;
+            for(EthernetPacket packet: packetList) {
+                i++;
+                if (Objects.equals(filterText, DisplayingPacketsInTable.getProtocolName(packet))) {
+                    filteredPacketList.add(packet);
+                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(i), DisplayingPacketsInTable.getSourceAddress(packet), DisplayingPacketsInTable.getDestinationAddress(packet), DisplayingPacketsInTable.getProtocolName(packet), String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                    showPackets(listedPacketsFiltered);
+                }
+            }
+        }
 
     }
     private void updateCaptureButtons(){

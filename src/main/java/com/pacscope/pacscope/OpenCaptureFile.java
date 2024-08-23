@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import static javafx.collections.FXCollections.observableArrayList;
 
 public class OpenCaptureFile{
@@ -44,7 +43,10 @@ public class OpenCaptureFile{
     private TableColumn<ListedPackets, String> length;
     @FXML
     private TableColumn<ListedPackets, String> info;
+    @FXML
+    private TextField filter;
 
+    private static String filterText = "";
     private static final List<EthernetPacket> packetList = new ArrayList<>();
     public static boolean opening = true;
     Stage primaryStage;
@@ -109,6 +111,7 @@ public class OpenCaptureFile{
         this.primaryStage = primaryStage;
     }
     public void openCaptureFilef() {
+
         Platform.runLater(() -> {
             if (file != null) {
                 fileName.setText(file.getName());
@@ -120,14 +123,21 @@ public class OpenCaptureFile{
                     String srcAddr;
                     String dstAddr;
                     String protocolName;
+                    packetList.clear();
                     while ((packet = handle.getNextPacket()) != null) {
                         EthernetPacket ethernetPacket = packet.get(EthernetPacket.class);
                         srcAddr = DisplayingPacketsInTable.getSourceAddress(ethernetPacket);
                         dstAddr = DisplayingPacketsInTable.getDestinationAddress(ethernetPacket);
                         protocolName = DisplayingPacketsInTable.getProtocolName(ethernetPacket);
-                        listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr,  protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
-                        packetList.add(ethernetPacket);
-                    }
+                            if(filterText.isEmpty()){
+                                listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                                packetList.add(ethernetPacket);
+                            }
+                            else if(Objects.equals(protocolName, filterText)) {
+                                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), packet.getPayload().getHeader().toString()));
+                                    packetList.add(ethernetPacket);
+                                }
+                            }
                     handle.close();
                 } catch (Exception e) {
                     System.out.println("Error opening file.");
@@ -136,6 +146,22 @@ public class OpenCaptureFile{
                 getBackToMainScreen();
             }
             showPackets();
+        });
+    }
+
+    @FXML
+    private void filterOut(){
+        filter.setOnAction(event -> {
+            if(DisplayingPacketsInTable.isValidFilter(filter.getText())){
+                filterText = filter.getText();
+            }
+            else{
+                if(!DisplayingPacketsInTable.isValidFilter(filter.getText()) && !filter.getText().isEmpty()){
+                    DisplayingPacketsInTable.generateAlertInvalidFilter(filter.getText());
+                }
+                filterText = "";
+            }
+            openCaptureFilef();
         });
     }
     public void showPackets(){
@@ -163,4 +189,6 @@ public class OpenCaptureFile{
         toolBar.prefHeightProperty().bind(vbox.heightProperty().multiply(0.1));
         back.setFitHeight(toolBar.getHeight());
     }
-    }
+
+
+}

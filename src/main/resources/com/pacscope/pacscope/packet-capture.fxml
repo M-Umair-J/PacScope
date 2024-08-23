@@ -9,6 +9,7 @@
 <VBox fx:id="vbox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="Infinity" minWidth="Infinity" onKeyPressed="#saveFile" style="-fx-background-color: #001126;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pacscope.pacscope.PacketCaptureController">
     <stylesheets>
         <URL value="@TableView.css" />
+        <URL value="@Filter.css" />
     </stylesheets>
    <ToolBar fx:id="toolbar" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #001126;">
           <ImageView fitHeight="30" fitWidth="30" onMouseClicked="#endCapture" preserveRatio="true">
@@ -22,6 +23,11 @@
             <Font name="Consolas Bold" size="14.0" />
          </font>
       </Label>
+       <TextField fx:id="filter" onMouseClicked="#filterOut" promptText="Filter" style="-fx-background-color: #02387A;">
+           <font>
+               <Font name="Consolas" size="14.0" />
+           </font>
+       </TextField>
    </ToolBar>
    <TableView fx:id="packetCaptureField" onMouseClicked="#displayPacket" prefHeight="200.0" prefWidth="200.0">
      <columns>
