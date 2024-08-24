@@ -14,6 +14,7 @@ import java.util.Objects;
 public class MainScreen extends Application {
     private static HostServices hostServices;
     private Stage primaryStage;
+
     @Override
     public void start(Stage stage) throws IOException {
         this.primaryStage = stage;
@@ -48,7 +49,7 @@ public class MainScreen extends Application {
                 });
 
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                e.getLocalizedMessage();
             }
         }).start();
     }
@@ -57,7 +58,7 @@ public class MainScreen extends Application {
         launch(args);
     }
     @Override
-    public void init() throws Exception {
+    public void init() {
         hostServices = getHostServices();
     }
 }
