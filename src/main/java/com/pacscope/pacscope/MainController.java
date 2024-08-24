@@ -1,5 +1,6 @@
 package com.pacscope.pacscope;
 
+import javafx.application.HostServices;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -24,6 +25,10 @@ public class MainController implements Initializable {
 
         this.primaryStage = primaryStage;
     }
+    private HostServices hostServices;
+    public void setHostServices(HostServices hostServices){
+        this.hostServices = hostServices;
+    }
     @FXML
     protected void onFileButtonClick() throws IOException{
         File file = fileOpener();
@@ -41,12 +46,25 @@ public class MainController implements Initializable {
         primaryStage.show();
     }
     @FXML
-    protected void onAboutButtonClick() {
-        System.out.println("Pacscope is a network packet capture and analysis tool.");
+    protected void onAboutButtonClick() throws IOException {
+        FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("about.fxml")));
+        Parent main  = loader.load();
+        AboutController about = loader.getController();
+        about.setPrimaryStage(primaryStage);
+        about.setHostServices(hostServices);
+        Scene mainScene = new Scene(main, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
+        primaryStage.setScene(mainScene);
+        primaryStage.show();
     }
     @FXML
-    protected void onHelpButtonClick() {
-        System.out.println("Please contact Pacscope for help.");
+    protected void onHelpButtonClick() throws IOException {
+        FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("help.fxml")));
+        Parent main  = loader.load();
+        HelpController help = loader.getController();
+        help.setPrimaryStage(primaryStage);
+        Scene mainScene = new Scene(main, primaryStage.getScene().getWidth(), primaryStage.getScene().getHeight());
+        primaryStage.setScene(mainScene);
+        primaryStage.show();
     }
     @FXML
     protected void liveCaptureButtonClick() throws IOException {

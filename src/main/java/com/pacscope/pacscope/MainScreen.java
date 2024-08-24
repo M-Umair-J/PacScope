@@ -1,6 +1,7 @@
 package com.pacscope.pacscope;
 
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class MainScreen extends Application {
+    private static HostServices hostServices;
     private Stage primaryStage;
     @Override
     public void start(Stage stage) throws IOException {
@@ -35,6 +37,7 @@ public class MainScreen extends Application {
                         Parent main = loader.load();
                         MainController mainController = loader.getController();
                         mainController.setPrimaryStage(primaryStage);
+                        mainController.setHostServices(hostServices);
                         Scene mainScene = new Scene(main,primaryStage.getScene().getWidth(),primaryStage.getScene().getHeight());
                         stage.setScene(mainScene);
                         stage.show();
@@ -52,5 +55,9 @@ public class MainScreen extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+    @Override
+    public void init() throws Exception {
+        hostServices = getHostServices();
     }
 }
