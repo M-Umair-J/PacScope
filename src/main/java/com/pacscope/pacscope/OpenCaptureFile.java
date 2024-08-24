@@ -48,11 +48,13 @@ public class OpenCaptureFile{
 
     private static String filterText = "";
     private static final List<Packet> packetList = new ArrayList<>();
+    private static final List<Packet> filteredPacketList = new ArrayList<>();
     public static boolean opening = true;
     Stage primaryStage;
     private Thread thread;
     private File file;
     private ObservableList<ListedPackets> listedPackets;
+    private ObservableList<ListedPackets> listedPacketsFiltered;
     @FXML
     private TableView<ListedPackets> packetCaptureField;
     private static Packet selectedPacket;
@@ -65,7 +67,7 @@ public class OpenCaptureFile{
             thread.start();
         }
         else{
-            showPackets();
+            showPackets(listedPackets);
         }
 
     }
@@ -75,6 +77,9 @@ public class OpenCaptureFile{
             thread.interrupt();
             thread = null;
         }
+        selectedPacket = null;
+        packetList.clear();
+        filterText = "";
         Platform.runLater(() -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/pacscope/pacscope/main-screen.fxml"));
@@ -92,7 +97,12 @@ public class OpenCaptureFile{
     public void displayPacket() throws IOException {
         int index = packetCaptureField.getSelectionModel().getSelectedIndex();
         if(index >= 0){
-            selectedPacket = packetList.get(index);
+            if(filterText.isEmpty() || !DisplayingPacketsInTable.isValidFilter(filterText)) {
+                selectedPacket = packetList.get(index);
+            }
+            else{
+                selectedPacket = filteredPacketList.get(index);
+            }
         }
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("packet-display.fxml"));
@@ -119,6 +129,7 @@ public class OpenCaptureFile{
                     PcapHandle handle = Pcaps.openOffline(file.getAbsolutePath());
                     Packet packet;
                     listedPackets = observableArrayList();
+                    listedPacketsFiltered = observableArrayList();
                     int i = 0;
                     String srcAddr;
                     String dstAddr;
@@ -133,14 +144,14 @@ public class OpenCaptureFile{
                         srcAddr = DisplayingPacketsInTable.getSourceAddress(packet);
                         dstAddr = DisplayingPacketsInTable.getDestinationAddress(packet);
                         protocolName = DisplayingPacketsInTable.getProtocolName(packet);
-                            if(filterText.isEmpty()){
                                 listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
                                 packetList.add(packet);
-                            }
-                            else if(Objects.equals(protocolName, filterText)) {
-                                    listedPackets.add(new ListedPackets(String.valueOf(++i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
-                                    packetList.add(packet);
+                            if(!filterText.isEmpty()) {
+                                if ((Objects.equals(protocolName, filterText))) {
+                                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.indexOf(packet)+1), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
+                                    filteredPacketList.add(packet);
                                 }
+                            }
                             packet = handle.getNextPacket();
 
                             }
@@ -152,7 +163,12 @@ public class OpenCaptureFile{
             } else {
                 getBackToMainScreen();
             }
-            showPackets();
+            if(filterText.isEmpty() || !DisplayingPacketsInTable.isValidFilter(filterText)){
+                showPackets(listedPackets);
+            }
+            else {
+                showPackets(listedPacketsFiltered);
+            }
         });
     }
 
@@ -161,6 +177,8 @@ public class OpenCaptureFile{
         filter.setOnAction(event -> {
             if(DisplayingPacketsInTable.isValidFilter(filter.getText())){
                 filterText = filter.getText();
+                filteredPacketList.clear();
+                listedPacketsFiltered.clear();
             }
             else{
                 if(!DisplayingPacketsInTable.isValidFilter(filter.getText()) && !filter.getText().isEmpty()){
@@ -171,7 +189,7 @@ public class OpenCaptureFile{
             openCaptureFilef();
         });
     }
-    public void showPackets(){
+    public void showPackets(ObservableList<ListedPackets> listedPackets){
         number.setCellValueFactory(new PropertyValueFactory<>("number"));
         srcIp.setCellValueFactory(new PropertyValueFactory<>("source"));
         dstIp.setCellValueFactory(new PropertyValueFactory<>("destination"));

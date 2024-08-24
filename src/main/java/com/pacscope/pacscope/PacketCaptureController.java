@@ -55,11 +55,13 @@ public class PacketCaptureController {
     private String filterText = "";
     private static final List<Packet> filteredPacketList = new ArrayList<>();
     private ObservableList<ListedPackets> listedPacketsFiltered;
-    ObservableList<ListedPackets> listedPackets = observableArrayList();
+    private final ObservableList<ListedPackets> listedPackets = observableArrayList();
     private Stage primaryStage;
     private static PcapNetworkInterface selectedInterface;
+    private volatile Packet packet;
     private static Packet selectedPacket;
     private volatile boolean capturing;
+    private volatile String headerInfo;
     private Thread thread;
     private static final List<Packet> packetList = new ArrayList<>();
     private boolean filtered;
@@ -133,6 +135,11 @@ public class PacketCaptureController {
     }
 
     private void goBackToMainScreen() {
+        filterText = "";
+        filteredPacketList.clear();
+        selectedInterface = null;
+        selectedPacket = null;
+        packetList.clear();
         Platform.runLater(() -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/pacscope/pacscope/main-screen.fxml"));
@@ -157,7 +164,7 @@ public class PacketCaptureController {
 
         try {
             handle = selectedInterface.openLive(snapLength, mode, timeout);
-            Packet packet = null;
+            packet = null;
             listedPacketsFiltered = observableArrayList();
             int i = 0;
             while (capturing && !Thread.currentThread().isInterrupted()) {
@@ -170,7 +177,7 @@ public class PacketCaptureController {
                 String dstAddr;
                 String protocolName;
                 if (packet != null && capturing) {
-                    String headerInfo = packet.getHeader().toString();
+                    headerInfo = packet.getHeader().toString();
                     if(packet.getPayload()!=null && packet.getPayload().getHeader()!=null){
                         headerInfo = packet.getPayload().getHeader().toString();
                     }
@@ -184,32 +191,38 @@ public class PacketCaptureController {
                     if(!filtered) {
                         showPackets(listedPackets);
                     }
-                    else{
-                        if(j == 0){
-                            for(Packet packet1: packetList){
-                                String headerInfo1 = packet1.getHeader().toString();
-                                if(packet1.getPayload()!=null && packet.getPayload().getHeader()!=null){
-                                    headerInfo1 = packet1.getPayload().getHeader().toString();
+                    else {
+                        new Thread(() -> {
+                            if (j == 0) {
+                                synchronized (packetList) {
+                                    for (Packet packet1 : packetList) {
+                                        if (packet1 != null) {
+                                            String headerInfo1 = packet1.getHeader().toString();
+                                            if (packet1.getPayload() != null && packet.getPayload().getHeader() != null) {
+                                                headerInfo1 = packet1.getPayload().getHeader().toString();
+                                            }
+                                            if (Objects.equals(DisplayingPacketsInTable.getProtocolName(packet1), filterText)) {
+                                                if (!filteredPacketList.contains(packet1)) {
+                                                    filteredPacketList.add(packet1);
+                                                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.lastIndexOf(packet1) + 1), DisplayingPacketsInTable.getSourceAddress(packet1), DisplayingPacketsInTable.getDestinationAddress(packet1), DisplayingPacketsInTable.getProtocolName(packet1), String.valueOf(packet1.length()), headerInfo1));
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                                if(Objects.equals(DisplayingPacketsInTable.getProtocolName(packet1), filterText)) {
-                                    if(!filteredPacketList.contains(packet1)) {
-                                        filteredPacketList.add(packet1);
-                                        listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.lastIndexOf(packet1)+1), DisplayingPacketsInTable.getSourceAddress(packet1), DisplayingPacketsInTable.getDestinationAddress(packet1), DisplayingPacketsInTable.getProtocolName(packet1), String.valueOf(packet1.length()), headerInfo1));
+                            } else {
+                                if (Objects.equals(protocolName, filterText)) {
+                                    if (!filteredPacketList.contains(packet)) {
+                                        filteredPacketList.add(packet);
+                                        listedPacketsFiltered.add(new ListedPackets(String.valueOf(packetList.indexOf(packet)), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
                                     }
                                 }
                             }
-                        }
-                        else{
-                            if(Objects.equals(protocolName, filterText)) {
-                                if(!filteredPacketList.contains(packet)) {
-                                    filteredPacketList.add(packet);
-                                    listedPacketsFiltered.add(new ListedPackets(String.valueOf(i), srcAddr, dstAddr, protocolName, String.valueOf(packet.length()), headerInfo));
-                                }
-                            }
-                        }
-                        showPackets(listedPacketsFiltered);
-                        j++;
+                            showPackets(listedPacketsFiltered);
+                            j++;
+                        }).start();
                     }
+
                     primaryStage.setOnCloseRequest(event -> System.exit(0));
 
                 }
